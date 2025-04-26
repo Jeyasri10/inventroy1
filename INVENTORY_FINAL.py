@@ -64,25 +64,20 @@ X = df[feature_cols]
 y = df['Demand Class']
 X, y
 
-# -------------------------------
+# ------------------------------- 
 # 🧹 Step 1: Define Feature Groups
 # -------------------------------
-# Define numerical columns based on your dataset
-numerical_cols = ['Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
+numerical_cols = ['Price', 'Discount', 'Demand Forecast', 'Competitor Pricing', 
                   'Discounted Price', 'Stock to Order Ratio', 'Inventory Level',
                   'Units Ordered']
 
-# Dynamically fetch one-hot encoded categorical columns
-categorical_cols = [col for col in df.columns if
-                    'Category_' in col or
-                    'Region_' in col or
-                    'Weather Condition_' in col or
+categorical_cols = [col for col in df.columns if 'Category_' in col or 
+                    'Region_' in col or 'Weather Condition_' in col or 
                     'Seasonality_' in col]
 
 # ------------------------------------
 # 🧼 Step 2: Drop Target & Non-Features
 # ------------------------------------
-# Drop target and time-related columns, if they exist
 drop_cols = [col for col in ['Units Sold', 'Year', 'Date'] if col in df.columns]
 features = df.drop(columns=drop_cols)
 target = df['Units Sold'].values  # Your prediction target
@@ -118,32 +113,45 @@ X_val_final = pd.concat([X_val_scaled, X_val_cat], axis=1)
 print("🔍 Preview of Final Processed Train Set:")
 print(X_train_final.head())
 
-print("\n🔍 Preview of Final Processed Validation Set:")
-print(X_val_final.head())
-
 # ------------------------------
-# Models: Linear, Lasso, Ridge
+# Linear Regression Model
 # ------------------------------
-models = [
-    ("Linear Regression", LinearRegression()),
-    ("Lasso Regression", Lasso(alpha=0.1)),
-    ("Ridge Regression", Ridge(alpha=1.0))
-]
+model = LinearRegression()
 
-# Train and evaluate each model
-for name, model in models:
-    print(f'Training {name}...')
+# Train the model
+print(f'Training Linear Regression...')
 
-    # Fit the model
-    model.fit(X_train_scaled, Y_train)
+# Fit the model
+model.fit(X_train_scaled, Y_train)
 
-    # Predictions on training data
-    train_preds = model.predict(X_train_scaled)
-    train_error = mae(Y_train, train_preds)
-    print(f'Training Error (MAE): {train_error:.4f}')
+# Predictions on training data
+train_preds = model.predict(X_train_scaled)
+train_error = mae(Y_train, train_preds)
+print(f'Training Error (MAE): {train_error:.4f}')
 
-    # Predictions on validation data
-    val_preds = model.predict(X_val_scaled)
-    val_error = mae(Y_val, val_preds)
-    print(f'Validation Error (MAE): {val_error:.4f}')
-    print()
+# Predictions on validation data
+val_preds = model.predict(X_val_scaled)
+val_error = mae(Y_val, val_preds)
+print(f'Validation Error (MAE): {val_error:.4f}')
+
+# Visualization: Bar Plot of MAE for Linear Regression
+fig, ax = plt.subplots(figsize=(8, 6))
+
+# Create a bar plot for Linear Regression's training and validation errors
+bar_width = 0.35
+index = [0]
+
+bar1 = ax.bar(index, train_error, bar_width, label='Training MAE', color='skyblue')
+bar2 = ax.bar([i + bar_width for i in index], val_error, bar_width, label='Validation MAE', color='salmon')
+
+# Adding labels and title
+ax.set_xlabel('Model')
+ax.set_ylabel('Mean Absolute Error (MAE)')
+ax.set_title('Linear Regression - MAE')
+ax.set_xticks([i + bar_width / 2 for i in index])
+ax.set_xticklabels(['Linear Regression'])
+ax.legend()
+
+# Show the plot
+plt.tight_layout()
+plt.show()
