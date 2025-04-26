@@ -1,4 +1,8 @@
 streamlit
-matplotlib
+scikit-learn
 pandas
+matplotlib
 numpy
+joblib
+scipy
+threadpoolctl
