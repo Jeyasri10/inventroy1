@@ -1,117 +1,191 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-import streamlit as st
-from sklearn.linear_model import LinearRegression, Lasso, Ridge
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_absolute_error as mae
-
-# Step 1: Load the DataFrame
-try:
-    df = pd.read_csv('retail_store_inventory.csv')
-    print(df.columns.tolist())
-    st.success("✅ DataFrame loaded successfully.")
-except FileNotFoundError:
-    st.error("❌ Error: The file was not found. Please check the file path.")
-    st.stop()
-
-# 🛠 Safe Date Handling
-if 'Date' in df.columns:
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')  # If wrong format, put NaT
-    df['Year'] = df['Date'].dt.year
-    df['Month'] = df['Date'].dt.month
-    df['Day'] = df['Date'].dt.day
-    print("Date features created successfully.")
-else:
-    print("⚠️ Warning: 'Date' column not found in DataFrame. Skipping date features.")
-
-
-# Step 3: Feature Engineering
-df['Discounted Price'] = df['Price'] * (1 - df['Discount'] / 100)
-df['Price Difference'] = df['Price'] - df['Competitor Pricing']
-df['Stock to Order Ratio'] = df['Inventory Level'] / (df['Units Ordered'] + 1)
-df['Forecast Accuracy'] = abs(df['Demand Forecast'] - df['Units Sold']) / (df['Units Sold'] + 1)
-
-# Step 4: Target for Regression (Units Sold)
-target = df['Units Sold']
-
-# Step 5: Feature Selection
-feature_cols = [
-    'Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
-    'Discounted Price', 'Price Difference', 'Stock to Order Ratio',
-    'Forecast Accuracy', 'Holiday/Promotion'
-]
-
-# Add Year, Month, Day if they exist
-for time_feature in ['Year', 'Month', 'Day']:
-    if time_feature in df.columns:
-        feature_cols.append(time_feature)
-
-# Then proceed
-X = df[feature_cols]
-y = df['Demand Class']
-
-
-
-
-# Step 6: Train-Test Split
-X_train, X_val, y_train, y_val = train_test_split(X, target, test_size=0.1, random_state=22)
-
-# Step 7: Scaling Numerical Features
-numerical_cols = ['Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
-                  'Discounted Price', 'Price Difference', 'Stock to Order Ratio',
-                  'Forecast Accuracy']
-
-scaler = StandardScaler()
-
-X_train_num_scaled = scaler.fit_transform(X_train[numerical_cols])
-X_val_num_scaled = scaler.transform(X_val[numerical_cols])
-
-# Replace scaled numerical columns
-X_train_scaled = X_train.copy()
-X_val_scaled = X_val.copy()
-
-X_train_scaled[numerical_cols] = X_train_num_scaled
-X_val_scaled[numerical_cols] = X_val_num_scaled
-
-# Step 8: Models - Linear, Lasso, Ridge
-models = [
-    ("Linear Regression", LinearRegression()),
-    ("Lasso Regression", Lasso(alpha=0.1)),
-    ("Ridge Regression", Ridge(alpha=1.0))
-]
-
-# Collecting errors
-train_errors = []
-val_errors = []
-
-for name, model in models:
-    model.fit(X_train_scaled, y_train)
-    y_train_pred = model.predict(X_train_scaled)
-    y_val_pred = model.predict(X_val_scaled)
-
-    train_mae = mae(y_train, y_train_pred)
-    val_mae = mae(y_val, y_val_pred)
-
-    train_errors.append(train_mae)
-    val_errors.append(val_mae)
-
-    st.write(f"**{name}** - Train MAE: {train_mae:.2f}, Validation MAE: {val_mae:.2f}")
-
-# Step 9: Visualization
-fig, ax = plt.subplots(figsize=(10,6))
-
-bar_width = 0.35
-index = range(len(models))
-
-bar1 = ax.bar(index, train_errors, bar_width, label='Training MAE', color='skyblue')
-bar2 = ax.bar([i + bar_width for i in index], val_errors, bar_width, label='Validation MAE', color='salmon')
-
-ax.set_xlabel('Model')
-ax.set_ylabel('Mean Absolute Error')
-ax.set_title('Model Comparison - Training vs Validation MAE')
-ax.set_xticks([i + bar_width/2 for i in index])
-ax.set_xticklabels([name for name, _ in models])
-ax.legend()
-
-st.pyplot(fig)
+ import matplotlib.pyplot as plt
+ import seaborn as sns
+ from sklearn.linear_model import LinearRegression, Lasso, Ridge
+ from sklearn.model_selection import train_test_split
+ from sklearn.preprocessing import StandardScaler
+ from sklearn.metrics import mean_absolute_error as mae
+ import streamlit as st
+ 
+ # Step 1: Load the DataFrame (Ensure the path to your CSV is correct)
+ try:
+ @@ -13,35 +15,13 @@
+     print("Error: The file was not found. Please check the file path.")
+     exit()
+ 
+ # Step 2: Define the list of columns you want to check
+ feature_cols = ['col1', 'col2', 'col3']  # Replace with your actual column names
+ 
+ # Step 3: Check if the columns are missing in the DataFrame
+ missing_cols = [col for col in feature_cols if col not in df.columns]
+ 
+ # Step 4: Handle missing columns
+ if missing_cols:
+     print(f"Missing columns: {missing_cols}")
+ else:
+     print("All specified columns are present in the DataFrame.")
+ 
+ # Step 5: Optionally, perform operations on your DataFrame
+ # Example operation: Display the first few rows of the DataFrame
+ print(df.head())
+ 
+ # 📆 Step 2: Convert Date column and extract time-based features
+ df['Date'] = pd.to_datetime(df['Date'])
+ df['Year'] = df['Date'].dt.year
+ df['Month'] = df['Date'].dt.month
+ df['Day'] = df['Date'].dt.day
+ 
+ # 🧮 Step 4: Feature Engineering
+ # Step 2: Feature Engineering
+ df['Discounted Price'] = df['Price'] * (1 - df['Discount'] / 100)
+ df['Price Difference'] = df['Price'] - df['Competitor Pricing']
+ df['Stock to Order Ratio'] = df['Inventory Level'] / (df['Units Ordered'] + 1)
+ df['Forecast Accuracy'] = abs(df['Demand Forecast'] - df['Units Sold']) / (df['Units Sold'] + 1)
+ 
+ # 🧠 Step 5: Target Creation - Classification
+ # Step 3: Target Creation - Classification
+ def classify_units(units):
+     if units <= 50:
+         return 0  # Low
+ @@ -52,7 +32,7 @@ def classify_units(units):
+ 
+ df['Demand Class'] = df['Units Sold'].apply(classify_units)
+ 
+ # ✅ Step 6: Feature Selection
+ # Step 4: Feature Selection
+ feature_cols = [
+     'Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
+     'Discounted Price', 'Price Difference', 'Stock to Order Ratio',
+ @@ -62,74 +42,36 @@ def classify_units(units):
+ 
+ X = df[feature_cols]
+ y = df['Demand Class']
+ X, y
+ 
+ # -------------------------------
+ # 🧹 Step 1: Define Feature Groups
+ # -------------------------------
+ # Define numerical columns based on your dataset
+ numerical_cols = ['Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
+                   'Discounted Price', 'Stock to Order Ratio', 'Inventory Level',
+                   'Units Ordered']
+ 
+ # Dynamically fetch one-hot encoded categorical columns
+ categorical_cols = [col for col in df.columns if
+                     'Category_' in col or
+                     'Region_' in col or
+                     'Weather Condition_' in col or
+                     'Seasonality_' in col]
+ 
+ # ------------------------------------
+ # 🧼 Step 2: Drop Target & Non-Features
+ # ------------------------------------
+ # Drop target and time-related columns, if they exist
+ drop_cols = [col for col in ['Units Sold', 'Year', 'Date'] if col in df.columns]
+ features = df.drop(columns=drop_cols)
+ target = df['Units Sold'].values  # Your prediction target
+ 
+ # ------------------------------------
+ # ✂️ Step 3: Train-Test Split
+ # ------------------------------------
+ X_train, X_val, Y_train, Y_val = train_test_split(features, target, test_size=0.05, random_state=22)
+ 
+ # ------------------------------------
+ # 📏 Step 4: Scale Numerical Features
+ # ------------------------------------
+ scaler = StandardScaler()
+ X_train_num = X_train[numerical_cols]
+ X_val_num = X_val[numerical_cols]
+ 
+ X_train_num_scaled = scaler.fit_transform(X_train_num)
+ X_val_num_scaled = scaler.transform(X_val_num)
+ # Step 5: Train-Test Split
+ X_train, X_val, Y_train, Y_val = train_test_split(X, y, test_size=0.05, random_state=22)
+ 
+ X_train_scaled = pd.DataFrame(X_train_num_scaled, columns=numerical_cols, index=X_train.index)
+ X_val_scaled = pd.DataFrame(X_val_num_scaled, columns=numerical_cols, index=X_val.index)
+ # Step 6: Scale Numerical Features
+ numerical_cols = ['Price', 'Discount', 'Demand Forecast', 'Competitor Pricing', 
+                   'Discounted Price', 'Price Difference', 'Stock to Order Ratio', 'Forecast Accuracy']
+ 
+ # ------------------------------------
+ # 🧩 Step 5: Combine with Categorical
+ # ------------------------------------
+ X_train_cat = X_train[categorical_cols]
+ X_val_cat = X_val[categorical_cols]
+ scaler = StandardScaler()
+ 
+ X_train_final = pd.concat([X_train_scaled, X_train_cat], axis=1)
+ X_val_final = pd.concat([X_val_scaled, X_val_cat], axis=1)
+ # Fit and transform on training data, transform on validation
+ X_train_scaled = scaler.fit_transform(X_train[numerical_cols])
+ X_val_scaled = scaler.transform(X_val[numerical_cols])
+ 
+ # ✅ Done! Final datasets ready for modeling
+ print("🔍 Preview of Final Processed Train Set:")
+ print(X_train_final.head())
+ # Convert scaled arrays back to DataFrames (preserve column names + indices)
+ X_train_scaled = pd.DataFrame(X_train_scaled, columns=numerical_cols, index=X_train.index)
+ X_val_scaled = pd.DataFrame(X_val_scaled, columns=numerical_cols, index=X_val.index)
+ 
+ print("\n🔍 Preview of Final Processed Validation Set:")
+ print(X_val_final.head())
+ # Concatenate numerical (scaled) and categorical (unchanged)
+ X_train_final = pd.concat([X_train_scaled, X_train.drop(columns=numerical_cols)], axis=1)
+ X_val_final = pd.concat([X_val_scaled, X_val.drop(columns=numerical_cols)], axis=1)
+ 
+ # ------------------------------
+ # Models: Linear, Lasso, Ridge
+ # ------------------------------
+ # Models to train
+ models = [
+     ("Linear Regression", LinearRegression()),
+     ("Lasso Regression", Lasso(alpha=0.1)),
+     ("Ridge Regression", Ridge(alpha=1.0))
+ ]
+ 
+ # Initialize lists for storing MAE for train and validation sets
+ train_errors = []
+ val_errors = []
+ 
+ @@ -138,27 +80,22 @@ def classify_units(units):
+     print(f'Training {name}...')
+ 
+     # Fit the model
+     model.fit(X_train_scaled, Y_train)
+     model.fit(X_train_final, Y_train)
+ 
+     # Predictions on training data
+     train_preds = model.predict(X_train_scaled)
+     train_preds = model.predict(X_train_final)
+     train_error = mae(Y_train, train_preds)
+     train_errors.append(train_error)
+     print(f'Training Error (MAE): {train_error:.4f}')
+ 
+     # Predictions on validation data
+     val_preds = model.predict(X_val_scaled)
+     val_preds = model.predict(X_val_final)
+     val_error = mae(Y_val, val_preds)
+     val_errors.append(val_error)
+ 
+     print(f'Training Error (MAE): {train_error:.4f}')
+     print(f'Validation Error (MAE): {val_error:.4f}')
+     print()
+ 
+ # ----------------------------------------
+ # Visualization: Bar Plot of MAE
+ # ----------------------------------------
+ 
+ # Plotting the MAE of each model for both training and validation sets
+ fig, ax = plt.subplots(figsize=(10, 6))
+ 
+ # Create a bar plot
+ @@ -176,6 +113,5 @@ def classify_units(units):
+ ax.set_xticklabels([model[0] for model in models])
+ ax.legend()
+ 
+ # Show plot
+ plt.tight_layout()
+ plt.show()
+ # Show plot using Streamlit
+ st.pyplot(fig)  # This will render the plot in Streamlit
