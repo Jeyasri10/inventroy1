@@ -42,8 +42,14 @@ feature_cols = [
     'Forecast Accuracy', 'Holiday/Promotion'
 ]
 
-if 'Year' in df.columns and 'Month' in df.columns and 'Day' in df.columns:
-    feature_cols += ['Year', 'Month', 'Day']
+# Add Year, Month, Day if they exist
+for time_feature in ['Year', 'Month', 'Day']:
+    if time_feature in df.columns:
+        feature_cols.append(time_feature)
+
+# Then proceed
+X = df[feature_cols]
+y = df['Demand Class']
 
 
 
