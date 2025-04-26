@@ -9,9 +9,9 @@ from sklearn.metrics import mean_absolute_error as mae
 # Step 1: Load the DataFrame (Ensure the path to your CSV is correct)
 try:
     df = pd.read_csv('retail_store_inventory.csv')  # Replace with your actual dataset path
-    print("DataFrame loaded successfully.")
+    st.write("DataFrame loaded successfully.")
 except FileNotFoundError:
-    print("Error: The file was not found. Please check the file path.")
+    st.write("Error: The file was not found. Please check the file path.")
     exit()
 
 # Step 2: Feature Engineering (Create additional features for better analysis)
@@ -31,13 +31,19 @@ def classify_units(units):
 
 df['Demand Class'] = df['Units Sold'].apply(classify_units)
 
-# Step 4: Feature Selection
-feature_cols = [
-    'Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
-    'Discounted Price', 'Price Difference', 'Stock to Order Ratio',
-    'Forecast Accuracy', 'Holiday/Promotion', 'Year', 'Month', 'Day'
-] + [col for col in df.columns if 'Category_' in col or 'Region_' in col or
-      'Weather Condition_' in col or 'Seasonality_' in col]
+# Check and display columns
+st.write("Columns in the DataFrame:")
+st.write(df.columns)
+
+# Define feature columns based on the actual columns in your CSV
+feature_cols = ['Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
+                'Discounted Price', 'Price Difference', 'Stock to Order Ratio',
+                'Forecast Accuracy', 'Holiday/Promotion', 'Year', 'Month', 'Day']
+
+# Check for missing columns
+missing_cols = [col for col in feature_cols if col not in df.columns]
+if missing_cols:
+    st.write(f"Missing columns: {missing_cols}")
 
 X = df[feature_cols]
 y = df['Demand Class']
@@ -76,7 +82,7 @@ val_errors = []
 
 # Train and evaluate each model
 for name, model in models:
-    print(f'Training {name}...')
+    st.write(f'Training {name}...')
 
     # Fit the model
     model.fit(X_train_final, Y_train)
