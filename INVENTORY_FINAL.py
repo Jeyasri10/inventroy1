@@ -14,6 +14,9 @@ except FileNotFoundError:
     st.write("Error: The file was not found. Please check the file path.")
     exit()
 
+# Check and display columns
+st.write("Columns in the DataFrame:", df.columns)
+
 # Step 2: Feature Engineering (Create additional features for better analysis)
 df['Discounted Price'] = df['Price'] * (1 - df['Discount'] / 100)
 df['Price Difference'] = df['Price'] - df['Competitor Pricing']
@@ -31,10 +34,6 @@ def classify_units(units):
 
 df['Demand Class'] = df['Units Sold'].apply(classify_units)
 
-# Check and display columns
-st.write("Columns in the DataFrame:")
-st.write(df.columns)
-
 # Define feature columns based on the actual columns in your CSV
 feature_cols = ['Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
                 'Discounted Price', 'Price Difference', 'Stock to Order Ratio',
@@ -44,6 +43,7 @@ feature_cols = ['Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
 missing_cols = [col for col in feature_cols if col not in df.columns]
 if missing_cols:
     st.write(f"Missing columns: {missing_cols}")
+    exit()  # Stop execution if columns are missing
 
 X = df[feature_cols]
 y = df['Demand Class']
