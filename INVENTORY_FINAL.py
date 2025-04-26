@@ -6,26 +6,38 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 import seaborn as sns
 
-df = pd.read_csv("retail_store_inventory.csv")
 
 
-df = df.dropna()
+# Step 1: Load the DataFrame (Ensure the path to your CSV is correct)
+try:
+    df = pd.read_csv('retail_store_inventory.csv')  # Replace with your actual dataset path
+    print("DataFrame loaded successfully.")
+except FileNotFoundError:
+    print("Error: The file was not found. Please check the file path.")
+    exit()
 
-print("Dataset Shape:", df.shape)
-print("\nColumn Names:", df.columns.tolist())
-print("\nFirst 5 Rows:\n", df.head())
+# Step 2: Define the list of columns you want to check
+feature_cols = ['col1', 'col2', 'col3']  # Replace with your actual column names
 
-df.info()
-
-df.describe()
-
-df.columns
-
-print(df.columns)
-
-
+# Step 3: Check if the columns are missing in the DataFrame
 missing_cols = [col for col in feature_cols if col not in df.columns]
-print("Missing columns:", missing_cols)
+
+# Step 4: Handle missing columns
+if missing_cols:
+    print(f"Missing columns: {missing_cols}")
+    # You can add further handling here, like adding the missing columns with default values
+    # Example: df[missing_cols] = 0  # Adding missing columns with default value 0
+else:
+    print("All specified columns are present in the DataFrame.")
+
+# Step 5: Optionally, perform operations on your DataFrame
+# Example operation: Display the first few rows of the DataFrame
+print(df.head())
+
+# Step 6: Save the modified DataFrame (if needed)
+# If you made changes and want to save the DataFrame to a new CSV file
+
+
 
 
 # 📆 Step 2: Convert Date column and extract time-based features
