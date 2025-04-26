@@ -97,6 +97,10 @@ for name, model in models:
     val_error = mae(Y_val, val_preds)
     val_errors.append(val_error)
 
+# Debugging: Check if the error lists are populated correctly
+st.write("Training errors:", train_errors)
+st.write("Validation errors:", val_errors)
+
 # Visualization: Bar Plot for MAE of all models
 fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -113,6 +117,9 @@ ax.set_title('MAE Comparison: Linear Regression, Lasso, and Ridge')
 ax.set_xticks([i + bar_width for i in index])
 ax.set_xticklabels([name for name, _ in models])
 ax.legend()
+
+# Debugging: Ensure that the plot is being generated
+st.write("Generated plot is ready for display.")
 
 # Show plot using Streamlit
 st.pyplot(fig)  # This will render the plot in Streamlit
