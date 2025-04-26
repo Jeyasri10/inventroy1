@@ -9,19 +9,22 @@ from sklearn.metrics import mean_absolute_error as mae
 # Step 1: Load the DataFrame
 try:
     df = pd.read_csv('retail_store_inventory.csv')
+    print(df.columns.tolist())
     st.success("✅ DataFrame loaded successfully.")
 except FileNotFoundError:
     st.error("❌ Error: The file was not found. Please check the file path.")
     st.stop()
 
-# Step 2: Date processing
+# 🛠 Safe Date Handling
 if 'Date' in df.columns:
-    df['Date'] = pd.to_datetime(df['Date'])
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')  # If wrong format, put NaT
     df['Year'] = df['Date'].dt.year
     df['Month'] = df['Date'].dt.month
     df['Day'] = df['Date'].dt.day
+    print("Date features created successfully.")
 else:
-    st.warning("⚠️ No 'Date' column found. Skipping date feature extraction.")
+    print("⚠️ Warning: 'Date' column not found in DataFrame. Skipping date features.")
+
 
 # Step 3: Feature Engineering
 df['Discounted Price'] = df['Price'] * (1 - df['Discount'] / 100)
@@ -36,16 +39,14 @@ target = df['Units Sold']
 feature_cols = [
     'Price', 'Discount', 'Demand Forecast', 'Competitor Pricing',
     'Discounted Price', 'Price Difference', 'Stock to Order Ratio',
-    'Forecast Accuracy', 'Holiday/Promotion', 'Year', 'Month', 'Day'
+    'Forecast Accuracy', 'Holiday/Promotion'
 ]
 
-# Confirm columns
-missing_cols = [col for col in feature_cols if col not in df.columns]
-if missing_cols:
-    st.error(f"Missing columns: {missing_cols}")
-    st.stop()
+if 'Year' in df.columns and 'Month' in df.columns and 'Day' in df.columns:
+    feature_cols += ['Year', 'Month', 'Day']
 
-X = df[feature_cols]
+
+
 
 # Step 6: Train-Test Split
 X_train, X_val, y_train, y_val = train_test_split(X, target, test_size=0.1, random_state=22)
