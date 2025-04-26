@@ -130,9 +130,6 @@ models = [
     ("Ridge Regression", Ridge(alpha=1.0))
 ]
 
-train_errors = []
-val_errors = []
-
 # Train and evaluate each model
 for name, model in models:
     print(f'Training {name}...')
@@ -143,39 +140,10 @@ for name, model in models:
     # Predictions on training data
     train_preds = model.predict(X_train_scaled)
     train_error = mae(Y_train, train_preds)
-    train_errors.append(train_error)
+    print(f'Training Error (MAE): {train_error:.4f}')
 
     # Predictions on validation data
     val_preds = model.predict(X_val_scaled)
     val_error = mae(Y_val, val_preds)
-    val_errors.append(val_error)
-
-    print(f'Training Error (MAE): {train_error:.4f}')
     print(f'Validation Error (MAE): {val_error:.4f}')
     print()
-
-# ----------------------------------------
-# Visualization: Bar Plot of MAE
-# ----------------------------------------
-
-# Plotting the MAE of each model for both training and validation sets
-fig, ax = plt.subplots(figsize=(10, 6))
-
-# Create a bar plot
-bar_width = 0.35
-index = range(len(models))
-
-bar1 = ax.bar(index, train_errors, bar_width, label='Training MAE', color='skyblue')
-bar2 = ax.bar([i + bar_width for i in index], val_errors, bar_width, label='Validation MAE', color='salmon')
-
-# Adding labels and title
-ax.set_xlabel('Model')
-ax.set_ylabel('Mean Absolute Error (MAE)')
-ax.set_title('Comparison of MAE for Different Models')
-ax.set_xticks([i + bar_width / 2 for i in index])
-ax.set_xticklabels([model[0] for model in models])
-ax.legend()
-
-# Show plot
-plt.tight_layout()
-plt.show()
